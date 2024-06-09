@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sliding Puzzle Game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            flex-direction: column;
+        }
+
+        .navbar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+
+        #puzzle-container {
+            display: grid;
+            gap: 5px;
+            width: 90vmin; /* Using vmin to make it responsive */
+            height: 90vmin; /* Using vmin to make it responsive */
+        }
+
+        .tile {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--tile-color, #6200ea);
+            color: white;
+            font-size: 2vmin; /* Using vmin to make it responsive */
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .tile.empty {
+            background-color: var(--empty-color, #f0f0f0);
+            cursor: default;
+        }
+
+        .config-container {
+            text-align: center;
+        }
+
+        .config-container form {
+            display: inline-block;
+            text-align: left;
+        }
+
+        .config-container label,
+        .config-container input {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        /* Styles for the navigation bar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #333;
+            padding: 10px;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            padding: 14px 20px;
+        }
+
+        .navbar a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+
+        /* Styles for the congrats button */
+        #congrats-button {
+            display: none;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 1.5rem;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        #congrats-button:hover {
+            background-color: #45a049;
+        }
+
+        /* Styles for the replay button */
+        #replay-button {
+            padding: 10px 20px;
+            background-color: #f44336;
+            color: white;
+            font-size: 1.5rem;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        #replay-button:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <span style="color: aliceblue;">Puzzle</span>
+        <a href="game2.html">More Games</a>
+    </div>
+    <div class="config-container">
+        <form id="config-form">
+            <label for="grid-size">Grid Size:</label>
+            <input type="number" id="grid-size" name="grid-size" min="2" max="10" value="3">
+            <br>
+            <label for="blank-areas">Number of Blank Areas:</label>
+            <input type="number" id="blank-areas" name="blank-areas" min="1" max="5" value="1">
+            <br>
+            <label for="tile-color">Tile Color:</label>
+            <input type="color" id="tile-color" name="tile-color" value="#6200ea">
+            <br>
+            <label for="empty-color">Empty Tile Color:</label>
+            <input type="color" id="empty-color" name="empty-color" value="#f0f0f0">
+            <br>
+            <button type="submit">Save Settings</button>
+        </form>
+    </div>
+    <div id="puzzle-container" style="display: none;"></div>
+    <button id="congrats-button">Congratulations!</button>
+    <button id="replay-button" style="display: none;">Replay</button>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('config-form');
+            const container = document.getElementById('puzzle-container');
+            const congratsButton = document.getElementById('congrats-button');
+            const replayButton = document.getElementById('replay-button');
+
+            // Load and apply settings
+            const settings = JSON.parse(localStorage.getItem('puzzleSettings')) || {
+                size: 3,
+                blankAreas: 1,
+                tileColor: '#6200ea',
+                emptyColor: '#f0f0f0'
+            };
+
+            // Set CSS variables
+            document.documentElement.style.setProperty('--tile-color', settings.tileColor);
+            document.documentElement.style.setProperty('--empty-color', settings.emptyColor);
+
+            // Form submit handler
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+
+                const gridSize = parseInt(document.getElementById('grid-size').value, 10);
+                const blankAreas = parseInt(document.getElementById('blank-areas').value, 10);
+                const tileColor = document.getElementById('tile-color').value;
+                const emptyColor = document.getElementById('empty-color').value;
+
+                const newSettings = {
+                    size: gridSize,
+                    blankAreas: blankAreas,
+                    tileColor: tileColor,
+                    emptyColor: emptyColor
+                };
+
+                localStorage.setItem('puzzleSettings', JSON.stringify(newSettings));
+
+                // Reload the game with new settings
+                loadGame(newSettings);
+            });
+
+            // Function to load the game with current settings
+            function loadGame(settings) {
+                form.style.display = 'none';
+                container.style.display = 'grid';
+                congratsButton.style.display = 'none';
+                replayButton.style.display = 'block';
+
+                const size = settings.size;
+                const blankAreas = settings.blankAreas;
+                const tileColor = settings.tileColor;
+                const emptyColor = settings.emptyColor;
+                let tiles = [];
+
+                // Adjust grid style based on size
+                container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+                container.style.gridTemplateRows = `repeat(${size}, 1fr)`;
+
+                // Create the grid
+                tiles = [...Array(size * size).keys()].map(n => n + 1);
+                for (let i = 0; i < blankAreas; i++) {
+                    tiles[size * size - 1 - i] = 0; // Last tiles are the empty ones
+                }
+                shuffleArray(tiles);
+
+                for (let i = 0; i < tiles.length; i++) {
+                    const tile = document.createElement('div');
+                    tile.classList.add('tile');
+                    if (tiles[i] === 0) {
+                        tile.classList.add('empty');
+                    } else {
+                        tile.innerText = tiles[i];
+                    }
+                    tile.dataset.index = i;
+                    container.appendChild(tile);
+                    tile.addEventListener('click', () => moveTile(i));
+                }
+
+                function shuffleArray(array) {
+                    for (let i = array.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [array[i], array[j]] = [array[j], array[i]];
+                    }
+                }
+
+                function moveTile(index) {
+                    const emptyIndices = [];
+                    for (let i = 0; i < blankAreas; i++) {
+                        emptyIndices.push(tiles.indexOf(0, i > 0 ? emptyIndices[i - 1] + 1 : 0));
+                    }
+
+                    const canMove = emptyIndices.some(emptyIndex => 
+                        [emptyIndex - 1, emptyIndex + 1, emptyIndex - size, emptyIndex + size].includes(index)
+                    );
+
+                    if (canMove) {
+                        const emptyIndex = emptyIndices.find(emptyIndex => 
+                            [emptyIndex - 1, emptyIndex + 1, emptyIndex - size, emptyIndex + size].includes(index)
+                        );
+                        [tiles[index], tiles[emptyIndex]] = [tiles[emptyIndex], tiles[index]];
+                        updateGrid();
+                        if (isSolved()) {
+                            congratsButton.style.display = 'block';
+                        }
+                    }
+                }
+
+                function updateGrid() {
+                    container.innerHTML = '';
+                    for (let i = 0; i < tiles.length; i++) {
+                        const tile = document.createElement('div');
+                        tile.classList.add('tile');
+                        if (tiles[i] === 0) {
+                            tile.classList.add('empty');
+                        } else {
+                            tile.innerText = tiles[i];
+                        }
+                        tile.dataset.index = i;
+                        container.appendChild(tile);
+                        tile.addEventListener('click', () => moveTile(i));
+                    }
+                }
+
+                function isSolved() {
+                    for (let i = 0; i < tiles.length - blankAreas; i++) {
+                        if (tiles[i] !== i + 1) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            }
+
+            // Event listener for replay button
+            replayButton.addEventListener('click', () => {
+                container.innerHTML = '';
+                loadGame(settings);
+            });
+
+            // Load the game if settings already exist
+            if (localStorage.getItem('puzzleSettings')) {
+                loadGame(settings);
+            }
+        });
+    </script>
+</body>
+</html>

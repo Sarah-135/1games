@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configure Puzzle</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        .navbar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+
+        #puzzle-container {
+            display: grid;
+            gap: 5px;
+        }
+
+        .tile {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--tile-color, #6200ea);
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .tile.empty {
+            background-color: var(--empty-color, #f0f0f0);
+            cursor: default;
+        }
+
+        .config-container {
+            text-align: center;
+        }
+
+        .config-container form {
+            display: inline-block;
+            text-align: left;
+        }
+
+        .config-container label,
+        .config-container input {
+            display: block;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="config-container">
+        <h1>Configure Puzzle</h1>
+        <form id="config-form">
+            <label for="grid-size">Grid Size:</label>
+            <input type="number" id="grid-size" name="grid-size" min="2" max="10" value="3">
+            <br>
+            <label for="blank-areas">Number of Blank Areas:</label>
+            <input type="number" id="blank-areas" name="blank-areas" min="1" max="5" value="1">
+            <br>
+            <label for="tile-color">Tile Color:</label>
+            <input type="color" id="tile-color" name="tile-color" value="#6200ea">
+            <br>
+            <label for="empty-color">Empty Tile Color:</label>
+            <input type="color" id="empty-color" name="empty-color" value="#f0f0f0">
+            <br>
+            <button type="submit">Save Settings</button>
+        </form>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('config-form');
+
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                
+                const gridSize = parseInt(document.getElementById('grid-size').value, 10);
+                const blankAreas = parseInt(document.getElementById('blank-areas').value, 10);
+                const tileColor = document.getElementById('tile-color').value;
+                const emptyColor = document.getElementById('empty-color').value;
+
+                const settings = {
+                    size: gridSize,
+                    blankAreas: blankAreas,
+                    tileColor: tileColor,
+                    emptyColor: emptyColor
+                };
+
+                localStorage.setItem('puzzleSettings', JSON.stringify(settings));
+
+                window.location.href = 'game (2).html'; // Redirect to the main game page
+            });
+        });
+    </script>
+</body>
+</html>

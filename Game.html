@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Page</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to bottom, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            font-family: 'Arial', sans-serif;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #333;
+            text-align: center;
+        }
+
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        nav ul li {
+            display: inline;
+            margin: 0 10px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 20px;
+        }
+
+        nav ul li a:hover {
+            text-decoration: underline;
+        }
+
+        .game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            border: 2px solid #fff;
+            overflow: hidden;
+            margin-top: 50px;
+        }
+
+        .player {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            width: 50px;
+            height: 50px;
+            background-color: #ff5722;
+            border-radius: 50%;
+            transform: translateX(-50%);
+        }
+
+        .obstacle {
+            position: absolute;
+            top: -20px;
+            width: 20px;
+            height: 20px;
+            background-color: #4caf50;
+            border-radius: 50%;
+        }
+
+        .score-board {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            text-align: center;
+        }
+
+        .replay-btn {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 10px 20px;
+            font-size: 20px;
+            background-color: #fff;
+            color: #000;
+            border: none;
+            cursor: pointer;
+        }
+    /* Styles for the navigation bar */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #333;
+      padding: 10px;
+    }
+
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      padding: 14px 20px;
+    }
+
+    .navbar a:hover {
+      background-color: #ddd;
+      color: black;
+    }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul>
+        </ul>
+    </nav>
+    <div class="navbar">
+        <span>Ignore greens</span>
+        <a href="game2.html">More Games</a>
+      </div>
+    <div class="game-container">
+        <div class="player"></div>
+        <div class="score-board">Score:<span id="score">0   <br>  </span></div>
+        <button class="replay-btn" onclick="startGame()">Replay</button>
+    </div>
+
+       <div style="color: #000;" class="btn">
+         remember that this game works with mousemove and ignore the green balls.
+       </div>
+
+    <script>
+        let score = 0;
+        let gameInterval;
+        let obstacleInterval;
+        let elapsedTime = 0;
+        let isGameOver = false;
+        const player = document.querySelector('.player');
+        const gameContainer = document.querySelector('.game-container');
+        const scoreBoard = document.getElementById('score');
+        const replayBtn = document.querySelector('.replay-btn');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const game = params.get('game');
+            
+            if (game === 'dodge') {
+                initializeDodgeGame();
+            } else if (game === 'catch') {
+                alert("Catch the Ball game will be here!");
+            } else if (game === 'tictactoe') {
+                alert("Tic Tac Toe game will be here!");
+            } else if (game === 'placeholder') {
+                alert("Placeholder game will be here!");
+            }
+        });
+
+        function startGame() {
+            isGameOver = false;
+            score = 0;
+            elapsedTime = 0;
+            player.style.left = '50%';
+            player.style.transform = 'translateX(-50%)';
+            scoreBoard.textContent = score;
+            replayBtn.style.display = 'none';
+            gameContainer.querySelectorAll('.obstacle').forEach(obstacle => obstacle.remove());
+            gameInterval = setInterval(updateGame, 50);
+            obstacleInterval = setInterval(createObstacle, 1000);
+            setTimeout(increaseDifficulty, 20000); // Increase difficulty after 20 seconds
+            setTimeout(increaseDifficulty, 60000); // Increase difficulty after 60 seconds
+        }
+
+        function initializeDodgeGame() {
+            document.addEventListener('mousemove', (e) => {
+                if (isGameOver) return;
+                const rect = gameContainer.getBoundingClientRect();
+                let x = e.clientX - rect.left - player.offsetWidth / 2;
+                x = Math.max(0, Math.min(x, rect.width - player.offsetWidth));
+                player.style.left = x + 'px';
+            });
+
+            startGame();
+        }
+
+        function createObstacle() {
+            const obstacle = document.createElement('div');
+            obstacle.classList.add('obstacle');
+            obstacle.style.left = Math.random() * (gameContainer.offsetWidth - 20) + 'px';
+            gameContainer.appendChild(obstacle);
+        }
+
+        function updateGame() {
+            elapsedTime += 50;
+            const obstacles = document.querySelectorAll('.obstacle');
+            obstacles.forEach(obstacle => {
+                let obstacleTop = parseInt(window.getComputedStyle(obstacle).getPropertyValue('top'));
+                if (obstacleTop > gameContainer.offsetHeight - player.offsetHeight &&
+                    parseInt(obstacle.style.left) > parseInt(player.style.left) - 20 &&
+                    parseInt(obstacle.style.left) < parseInt(player.style.left) + player.offsetWidth) {
+                    endGame();
+                } else if (obstacleTop > gameContainer.offsetHeight) {
+                    obstacle.remove();
+                    score++;
+                    scoreBoard.textContent = score;
+                } else {
+                    obstacle.style.top = obstacleTop + (elapsedTime / 10000) + 'px'; // Increase speed based on time
+                }
+            });
+        }
+
+        function increaseDifficulty() {
+            clearInterval(obstacleInterval);
+            obstacleInterval = setInterval(createObstacle, 1000 / (elapsedTime / 20000 + 1)); // Increase frequency
+        }
+
+        function endGame() {
+            isGameOver = true;
+            clearInterval(gameInterval);
+            clearInterval(obstacleInterval);
+            replayBtn.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Selection Menu</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to bottom, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .game-links {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .game-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 24px;
+            margin: 10px 0;
+            padding: 10px 20px;
+            background-color: #333;
+            border-radius: 5px;
+        }
+
+        .game-links a:hover {
+            background-color: #555;
+        }
+            /* Styles for the navigation bar */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #333;
+      padding: 10px;
+    }
+
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      padding: 14px 20px;
+    }
+
+    .navbar a:hover {
+      background-color: #ddd;
+      color: black;
+    }
+    </style>
+</head>
+<body>
+    <div class="game-links">
+        <a href="game.html?game=dodge">Dodge the Falling Objects</a>
+        <a href="catch.html">Catch the Ball</a>
+        <a href="tictactoe.html">Tic Tac Toe</a>
+        <a href="game (2).html">Puzzle Game</a>
+    </div>
+</body>
+</html>
